@@ -106,6 +106,13 @@
 			<div id="geometry"></div>	<br>
 			<div id="address-components"></div>
 
+            <!--Uber -->
+            <br><br><h2>Uber</h2>
+            <div id="Uber-Time"></div>
+
+            <!--Lyft -->
+            <br><br><h2>Lyft</h2>
+            <div id="Lyft-Time"></div>
 <!--Geocode Script-->
 			<script>
 			// Call Geocode
@@ -117,61 +124,115 @@
             // Listen for submiot
 			locationForm.addEventListener('submit', geocode);
 
-			function geocode(e){
-				// Prevent actual submit
-				e.preventDefault();
+			function geocode(e) {
+                // Prevent actual submit
+                e.preventDefault();
+                let lat;
+                var location = document.getElementById('location-input').value;
 
-				var location = document.getElementById('location-input').value;
+                axios.get('https://maps.googleapis.com/maps/api/geocode/json?', {
+                    params: {
+                        address: location,
+                        key: 'AIzaSyAxBW6beYoMaUPaH1zlSfBJgagoqFwv6lk'
+                    }
+                })
+                    .then(function (response) {
+                        // logging response
+                        console.log(response);
 
-					axios.get('https://maps.googleapis.com/maps/api/geocode/json?',{
-						params:{
-							address: location,
-							key: 'AIzaSyAxBW6beYoMaUPaH1zlSfBJgagoqFwv6lk'
-						}
-					})
-					.then(function(response){
-						// logging response
-						console.log(response);
-
-						// Fromatted address
-						var formattedAddress = response.data.results[0].formatted_address;
-						var formattedAddressOutput = `
+                        // Fromatted address
+                        var formattedAddress = response.data.results[0].formatted_address;
+                        var formattedAddressOutput = `
 							<ul class="list-group">
 								<li class = "list-group-item">${formattedAddress}</li>
 							</ul>
 						`;
 
-						// Address Components
-						var addressComponents = response.data.results[0].address_components;
-						var addressComponentsOutput = '<ul class="list-group">';
-						for(var i = 0;i < addressComponents.length;i++){
-							addressComponentsOutput += `
+                        // Address Components
+                        var addressComponents = response.data.results[0].address_components;
+                        var addressComponentsOutput = '<ul class="list-group">';
+                        for (var i = 0; i < addressComponents.length; i++) {
+                            addressComponentsOutput += `
 								<li class="list-group-item"><strong>${addressComponents[i].types[0]}</strong>: ${addressComponents[i].long_name}</li>
 							`;
-						}
-						addressComponentsOutput += '</ul>';
+                        }
+                        addressComponentsOutput += '</ul>';
 
-						// Geometry
-						var lat = response.data.results[0].geometry.location.lat;
-						var lng = response.data.results[0].geometry.location.lng;
-						var geometryOutput = `
+                        // Geometry
+                        var lat = response.data.results[0].geometry.location.lat;
+                        var lng = response.data.results[0].geometry.location.lng;
+
+                        var geometryOutput = `
 							<ul class="list-group">
 								<li class="list-group-item"><strong>Latitude</strong>: ${lat}</li>
 								<li class="list-group-item"><strong>Longitude</strong>: ${lng}</li>
 							</ul>
 						`;
+                        Uber(lat, lng);
+                        Lyft(lat, lng, lat, lng);
 
-						// Output to app
-						document.getElementById('formatted-address').innerHTML = formattedAddressOutput;
-						document.getElementById('address-components').innerHTML = addressComponentsOutput;
-						document.getElementById('geometry').innerHTML = geometryOutput;
 
-					})
-					.catch(function(error){
-						console.log(error);
-					});
+                        // Output to app
+                        document.getElementById('formatted-address').innerHTML = formattedAddressOutput;
+                        document.getElementById('address-components').innerHTML = addressComponentsOutput;
+                        document.getElementById('geometry').innerHTML = geometryOutput;
 
-				}
+
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+
+            }
+            function Uber(lat, lng){
+                const Auth = 'Bearer KA.eyJ2ZXJzaW9uIjoyLCJpZCI6IkpxOHRNRStHUjlPZUZsc3E3d2FNd1E9PSIsImV4cGlyZXNfYXQiOjE1MTMxNzY5MDUsInBpcGVsaW5lX2tleV9pZCI6Ik1RPT0iLCJwaXBlbGluZV9pZCI6MX0.LNQShv0cUIEfU3K5S1ySz77HBChd3MAZ7h45Qlf2Nhk';
+                //console.log(Auth);
+                axios({
+                    method: 'post',
+                    url: 'https://api.uber.com/v1.2/requests/estimate',
+                    headers: {Authorization: Auth},
+                    data: {
+                        start_latitude: '37.7752278',
+                        start_longitude: '-122.4197513',
+                        end_latitude: '37.7773228',
+                        end_longitude: '-122.4272052'
+                    }
+                })
+                    .then(response => {
+                        const Uber_Estimates = response.data.trip.duration_estimate/60;
+                        var UberOutput = `
+							<ul class="list-group">
+								<li class = "list-group-item">${Uber_Estimates}<strong style="padding-left: 4px">Minutes</strong></li>
+							</ul>
+						`;
+                        document.getElementById('Uber-Time').innerHTML = UberOutput;
+                        //console.log(response.data.trip.duration_estimate);
+                    })
+                    .catch(error =>{
+                        console.log(error)
+                    })
+            }
+
+            function Lyft(Startlat, Startlng, EndLat, EndLng) {
+                const Auth = 'bearer 7yOypj76IPqCHCXQMnZPOmev6cuSCERSFH7JAvGp7xCRj4VcYb+sgY6xQrPecgdKhgECO+tWoKNGinhacUrD+gq+eKf6/WraRnUuwVS0IQOVbdf3U5ijmwk=';
+                axios.get('https://api.lyft.com/v1/cost?start_lat=37.7763&start_lng=-122.3918&end_lat=37.7972&end_lng=-122.4533&ride_type=lyft',
+                    {headers: {Authorization: Auth}})
+                    .then(response => {
+                        const Lyft_Estimates = (response.data.cost_estimates[0].estimated_duration_seconds / 60).toFixed(2);
+                        var LyftOutput = `
+							<ul class="list-group">
+								<li class = "list-group-item">${Lyft_Estimates}<strong style="padding-left: 4px">Minutes</strong></li>
+							</ul>
+						`;
+                        document.getElementById('Lyft-Time').innerHTML = LyftOutput;
+                        //console.log(response.data.cost_estimates[0].estimated_duration_seconds);
+                    })
+                    .catch(error => {
+                        console.log(error)
+                    })
+            }
+
+
 			</script>
 
 <!-- CityMapperCode -->
@@ -180,6 +241,7 @@
 			// citycode();
 
 			// Get location form
+
 			var locationForm = document.getElementById('location-form');
 
 			// Listen for submiot
@@ -245,7 +307,7 @@
 
 				}
 			</script>
-<!--Uber -->
+
 
 		</div>
 		<div class="agileits_copyright">
