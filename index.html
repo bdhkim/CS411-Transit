@@ -215,7 +215,7 @@
 
             function Lyft(Startlat, Startlng, EndLat, EndLng) {
                 const Auth = 'bearer 7yOypj76IPqCHCXQMnZPOmev6cuSCERSFH7JAvGp7xCRj4VcYb+sgY6xQrPecgdKhgECO+tWoKNGinhacUrD+gq+eKf6/WraRnUuwVS0IQOVbdf3U5ijmwk=';
-                axios.get('https://api.lyft.com/v1/cost?start_lat=Startlat&start_lng=Startlng&end_lat=Endlat&end_lng=Endlng&ride_type=lyft',
+                axios.get('https://api.lyft.com/v1/cost?start_lat='+Startlat+'&start_lng='+Startlng+'&end_lat='+EndLat+'&end_lng='+EndLng+'&ride_type=lyft',
                     {headers: {Authorization: Auth}})
                     .then(response => {
                         const Lyft_Estimates = (response.data.cost_estimates[0].estimated_duration_seconds / 60).toFixed(2);
