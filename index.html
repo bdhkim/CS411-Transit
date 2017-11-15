@@ -159,17 +159,19 @@
                         addressComponentsOutput += '</ul>';
 
                         // Geometry
-                        var lat = response.data.results[0].geometry.location.lat;
-                        var lng = response.data.results[0].geometry.location.lng;
+                        var EndLat = response.data.results[0].geometry.location.lat;
+                        var EndLng = response.data.results[0].geometry.location.lng;
+                        var Startlat = '42.348670'
+						var Startlng = '-71.103664'
 
                         var geometryOutput = `
 							<ul class="list-group">
-								<li class="list-group-item"><strong>Latitude</strong>: ${lat}</li>
-								<li class="list-group-item"><strong>Longitude</strong>: ${lng}</li>
+								<li class="list-group-item"><strong>Latitude</strong>: ${Startlat}</li>
+								<li class="list-group-item"><strong>Longitude</strong>: ${Startlng}</li>
 							</ul>
 						`;
-                        Uber(lat, lng);
-                        Lyft(lat, lng, lat, lng);
+                        Uber(Startlat, Startlng, EndLat, EndLng);
+                        Lyft(Startlat, Startlng, EndLat, EndLng);
 
 
                         // Output to app
@@ -184,7 +186,7 @@
                     });
 
             }
-            function Uber(lat, lng){
+            function Uber(Startlat, Startlng, EndLat, EndLng){
                 const Auth = 'Bearer KA.eyJ2ZXJzaW9uIjoyLCJpZCI6IkpxOHRNRStHUjlPZUZsc3E3d2FNd1E9PSIsImV4cGlyZXNfYXQiOjE1MTMxNzY5MDUsInBpcGVsaW5lX2tleV9pZCI6Ik1RPT0iLCJwaXBlbGluZV9pZCI6MX0.LNQShv0cUIEfU3K5S1ySz77HBChd3MAZ7h45Qlf2Nhk';
                 //console.log(Auth);
                 axios({
@@ -192,10 +194,10 @@
                     url: 'https://api.uber.com/v1.2/requests/estimate',
                     headers: {Authorization: Auth},
                     data: {
-                        start_latitude: '37.7752278',
-                        start_longitude: '-122.4197513',
-                        end_latitude: '37.7773228',
-                        end_longitude: '-122.4272052'
+                        start_latitude: Startlat,
+                        start_longitude: Startlng,
+                        end_latitude: EndLat,
+                        end_longitude: EndLng
                     }
                 })
                     .then(response => {
@@ -242,7 +244,7 @@
 
 			// Get location form
 
-			var locationForm = document.getElementById('location-form');
+			locationForm = document.getElementById('location-form');
 
 			// Listen for submiot
 			locationForm.addEventListener('submit', citycode);
@@ -266,12 +268,14 @@
 			  var lat = response.data.results[0].geometry.location.lat;
 			  var lng = response.data.results[0].geometry.location.lng;
 
-				var stringBuilder = "";
-				var comma = ",";
-				var combinedCoordinates = stringBuilder.concat(lat, comma); //this will comebine Latitude and Longitude
-				var combinedCoordinates2 = combinedCoordinates.concat(lng);
+				//var stringBuilder = "";
+				//var comma = ",";
+				//var combinedCoordinates = stringBuilder.concat(lat, comma); //this will comebine Latitude and Longitude
+				//var combinedCoordinates2 = combinedCoordinates.concat(lng);
+				  var combinedCoordinates2 = lat + ',' + lng
+				  console.log(combinedCoordinates2);
+
 				})
-				console.log(combinedCoordinates2);
 
 
 					axios.get('https://cors-anywhere.herokuapp.com/https://developer.citymapper.com/api/1/traveltime/?',{
