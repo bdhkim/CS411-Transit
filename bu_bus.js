@@ -92,7 +92,7 @@ function nearest_bus_stop(stops_obj, lat, lng)
         dist_arr.push(distance);
     }
 
-    var lowest = 0;
+    var lowest = 100000000;
     var lowest_id = 0;
     for(stop_idx = 0; stop_idx < num_stops; stop_idx++)
     {
@@ -103,8 +103,190 @@ function nearest_bus_stop(stops_obj, lat, lng)
         }
     }
 
-    var nearest_stop_id = stops_obj.ResultSet.Result[lowest_id].transloc_stop_id;
-    return nearest_stop_id;
+    var nearest_stop_id = stops_obj.ResultSet.Result[lowest_id].stop_id;
+    var nearest_stop_direction_id = stops_obj.ResultSet.Result[lowest_id].direction_id;
+    return [nearest_stop_id, nearest_stop_direction_id];
+}
+
+
+function get_index(array, value)
+{
+    var i;
+    var idx_to_return;
+    for (i = 0; i < array.length; i++)
+    {
+        if (array[i] == value)
+        {
+            idx_to_return = i;
+        }
+    }
+
+    return idx_to_return;
+}
+
+
+
+/*
+    Input: Origin Latitude
+           Origin Longitude
+           Destination Latitude
+           Destination Longitude
+    Output: ID of closest stop to origin
+            ID of closest stop to destination
+*/
+function optimal_nearest_stops(stops_obj, ori_lat, ori_lng, dest_lat, dest_lng)
+{
+    var start_arr = nearest_bus_stop(stops_obj, ori_lat, ori_lng);
+    var end_arr = nearest_bus_stop(stops_obj, dest_lat, dest_lng);
+
+    var new_start_stop_id;
+    var new_end_stop_id;
+
+    var outbound_stops = ["C1","C2","C3","C4","C5","C6","C7","C8"]; //direction: 0 (towards stuvi)
+    var inbound_stops = ["M1","M2","M3","M4","M5","M6","M7"];       //direction: 1 (away from stuvi)
+    var stops_pairs = [["C8","M1"],["C7","M2"],["C6","M3"],["C5","M4"],["C4","M5"],["C2","M6"],["C1","M7"]];
+    var stops_pairs_obj = {"C8":"M1", "M1":"C8", "C7":"M2", "M2":"C7", "C6":"M3", "M3":"C7", "C5":"M4", "M4":"C5", "C4":"M5", "M5":"C4", "C2":"M6", "M6":"C2", "C1":"M7", "M7":"C1"};
+
+
+    var same_route_correct_direction_flag = false;
+    var same_route_wrong_direction_flag = false;
+
+    //geographical direction from current stop to destination based on route of current stop
+    var different_route_correct_direction_flag = false;
+    var different_route_wrong_direction_flag = false;
+
+    //Same route
+    if (start_arr[1] == end_arr[1])
+    {
+        //If outbound
+        if (start_arr[1] == 0)
+        {
+            if (get_index(outbound_stops,end_arr[0]) > get_index(outbound_stops,start_arr[0]))
+            {
+                same_route_correct_direction_flag = true;
+            }
+            else
+            {
+                same_route_wrong_direction_flag = true;
+            }
+        }
+        //If inbound
+        else if (start_arr[1] == 1)
+        {
+            if (get_index(inbound_stops,end_arr[0]) > get_index(inbound_stops,start_arr[0]))
+            {
+                same_route_correct_direction_flag = true;
+            }
+            else
+            {
+                same_route_wrong_direction_flag = true;
+            }
+        }
+        else
+        {
+            console.log("Error: Same route, but different route number (problem with API)");
+        }
+    }
+
+    //If different route and current location is Danielsen, BU Bus not a viable option
+    else if ((start_arr[0] == "C3") || (end_arr[0] == "C3"))
+       {
+           console.log("Too long. Not an option (Danielsen)....");
+       }
+
+    //Different route
+    else
+    {
+        //Stop opposite from current start_stop
+        var temp_stop_id = stops_pairs_obj[start_arr[0]];
+
+        //If end_stop is on the Outbound Route
+        if (end_arr[1] == 0)
+        {
+
+            if (get_index(outbound_stops,temp_stop_id) > get_index(outbound_stops,end_arr[0]))
+            {
+                different_route_correct_direction_flag = true;
+            }
+            else
+            {
+                different_route_wrong_direction_flag = true;
+            }
+
+        }
+
+        //If end_stop is on the Inbound Route
+        else if (end_arr[1] == 1)
+        {
+            if (get_index(inbound_stops,temp_stop_id) > get_index(inbound_stops,end_arr[0]))
+            {
+                different_route_correct_direction_flag = true;
+            }
+            else
+            {
+                different_route_wrong_direction_flag = true;
+            }
+
+        }
+    }
+
+
+    //Now to determine the correct stops
+    var new_start_stop_id;
+    var new_end_stop_id;
+
+    if (same_route_correct_direction_flag)
+    {
+        console.log("Stops in correct direction");
+        new_start_stop_id = start_arr[0];
+        new_end_stop_id = end_arr[0];
+    }
+
+    else if ((start_arr[0] == "C3") || (end_arr[0] == "C3"))
+    {
+        console.log("Too long. Not an option (Danielsen)....");
+        new_start_stop_id = start_arr[0];
+        new_end_stop_id = end_arr[0];
+    }
+
+    //On the same route, but end_stop is before start stop
+    else if (same_route_wrong_direction_flag)
+    {
+        new_start_stop_id = stops_pairs_obj[start_arr[0]];
+        new_end_stop_id = stops_pairs_obj[end_arr[0]];
+
+        console.log("Stops are on the same route, but the destination is before the origin on the route");
+        console.log("Take bus from opposite stop from origin, and get off at opposite stop from destination");
+    }
+
+    //On a different route, and the end_stop is after the start_stop in the direction of travel from the start_stop
+    else if (different_route_correct_direction_flag)
+    {
+        new_start_stop_id = start_arr[0];
+        new_end_stop_id = stops_pairs_obj[end_arr[0]];
+
+        console.log("Stops are on different routes. The destination is in the direction of the bus if taken from current origin stop.");
+        console.log("Take bus current stop in origin, and get off at opposite stop from destination.");
+    }
+
+    //On a different route, and the end_stop is after the opposite of the start stop on the route of the end stop
+    else if(different_route_wrong_direction_flag)
+    {
+        new_start_stop_id = stops_pairs_obj[start_arr[0]];
+        new_end_stop_id = end_arr[0];
+
+        concole.log("Stops are on different routes. The actual origin stop should be on the opposite side of the current origin stop.");
+        console.log("Walk across the street, and take the bus from the stop opposite to the current origin stop.");
+    }
+
+    else
+    {
+        console.log("Error in stops");
+        new_start_stop_id = start_arr[0];
+        new_end_stop_id = end_arr[0];
+    }
+
+    return [new_start_stop_id, new_end_stop_id];
 }
 
 
@@ -118,10 +300,11 @@ function nearest_bus_stop(stops_obj, lat, lng)
  */
 function earliest_arrival_time(arrival_time_arr, bus_id_arr)
 {
-    num_times = arrival_time_arr.length;
+    var num_times = arrival_time_arr.length;
 
     var lowest = Date.parse(arrival_time_arr[0]);
     var bus_id = 0;
+    var time_idx;
     for(time_idx = 1; time_idx < num_times; time_idx++)
     {
         var arrival_time = Date.parse(arrival_time_arr[time_idx]);
@@ -170,10 +353,10 @@ function calculate_walking_time(start_coord, end_coord)
     //var start_coord;
     var api_2 = '&destinations=';
     //var end_coord;
-    var api_3 = '&key=AIzaSyCs83Y5ODrwAOEko3-tJbZlNssYw56yd4A';
+    var api_3 = '&key=AIzaSyCs83Y5ODrwAOEko3-tJbZlNssYw56yd4A&mode=walking';
 
     var url = api_1 + start_coord + api_2 + end_coord + api_3;
-    var distance_obj = loadJSON(url);
+    var distance_obj = JSON.parse(Get(url));
 
     walk_time = s_to_min(distance_obj.rows[0].elements[0].duration.value);
     return walk_time;
@@ -205,17 +388,27 @@ var dest_lng = -71.10044919;
 
 
 //Find nearest bus stops to origin and destination
-var start_stop_id = nearest_bus_stop(stops_obj, ori_lat, ori_lng);
-var end_stop_id = nearest_bus_stop(stops_obj, dest_lat, dest_lng);
+var stops = optimal_nearest_stops(stops_obj, ori_lat, ori_lng, dest_lat, dest_lng);
+var start_stop_id = stops[0];
+var end_stop_id = stops[1];
+
+if (start_stop_id == end_stop_id)
+{
+    return "Don't be lazy. Just walk.";
+}
 
 
-//Determine arrival of next bus to stop at start_stop_id
+//Determine arrival of next bus to start_stop
 //Assumption: num_livebus does not change while the loop below is executed
 var num_livebus = livebus_obj.totalResultsAvailable;
+if (num_livebus == 0)
+{
+    return "No buses are running";
+}
 
 //Record estimated arrival time of buses at start_stop
-arrival_time_arr = [];
-bus_id_arr = [];
+var arrival_time_arr = [];
+var bus_id_arr = [];
 
 var bus_idx;
 for(bus_idx = 0; bus_idx < num_livebus; bus_idx++)
@@ -233,7 +426,6 @@ for(bus_idx = 0; bus_idx < num_livebus; bus_idx++)
                 {
                     arrival_time_arr.push(livebus_obj.ResultSet.Result[bus_idx].arrival_estimates[idx].arrival_at);
                     bus_id_arr.push(livebus_obj.ResultSet.Result[bus_idx].id);
-                    //console.log(livebus_obj.ResultSet.Result[bus_idx].id);
                 }
             }
         }
@@ -252,9 +444,9 @@ if(arrival_time_arr.length > 0)
 }
 else
 {
-    //To be changed
-    console.log("No buses");
-    console.log("Too long. Not an option");
+    //console.log("No buses");
+    //console.log("Too long. Not an option");
+    return "Too long. Not an option";
 }
 
 
@@ -293,58 +485,57 @@ if (typeof dest_arrival_time !== 'undefined')
 else
 {
     console.log("Unable to detect destination stop");
-    console.log("Too long. Not an option");
+    //console.log("Too long. Not an option");
+    return "Too long. Not an option";
 }
 
 
-/*
-    Get walking times
-        1) from current location to nearest bus stop
-        2) from destination bus stop to actual destination
-*/
+//Calculate walking time
+var start_stop_lat;
+var start_stop_lng;
+var end_stop_lat;
+var end_stop_lng;
 
-var total_time;
-if ((arrival_time_arr.length > 0) && (typeof dest_arrival_time !== 'undefined'))
+var num_stops = stops_obj.totalResultsAvailable;
+
+var stop_idx;
+for (stop_idx = 0; stop_idx < num_stops; stop_idx++)
 {
-    var start_stop_lat;
-    var start_stop_lng;
-    var end_stop_lat;
-    var end_stop_lng;
-
-    var num_stops = stops_obj.totalResultsAvailable
-
-    var stop_idx;
-    for (stop_idx = 0; stop_idx < num_stops; stop_idx++) {
-        if (stops_obj.ResultSet.Result[stop_idx].transloc_stop_id == start_stop_id)
-            start_stop_lat = stops_obj.ResultSet.Result[stop_idx].stop_lat;
+    if (stops_obj.ResultSet.Result[stop_idx].stop_id == start_stop_id)
+    {
+        start_stop_lat = stops_obj.ResultSet.Result[stop_idx].stop_lat;
         start_stop_lng = stops_obj.ResultSet.Result[stop_idx].stop_lng;
-
-        if (stops_obj.ResultSet.Result[stop_idx].transloc_stop_id == end_stop_id)
-            end_stop_lat = stops_obj.ResultSet.Result[stop_idx].stop_lat;
+    }
+    if (stops_obj.ResultSet.Result[stop_idx].stop_id == end_stop_id)
+    {
+        end_stop_lat = stops_obj.ResultSet.Result[stop_idx].stop_lat;
         end_stop_lng = stops_obj.ResultSet.Result[stop_idx].stop_lng;
     }
+}
 
 
-    var ori_coord = ori_lat.toString() + ',' + ori_lng.toString();
-    var dest_coord = dest_lat.toString() + ',' + dest_lng.toString();
+var ori_coord = ori_lat.toString() + ',' + ori_lng.toString();
+var dest_coord = dest_lat.toString() + ',' + dest_lng.toString();
 
-    var start_stop_coord = start_stop_lat.toString() + ',' + start_stop_lng.toString();
-    var end_stop_coord = end_stop_lat.toString() + ',' + end_stop_lng.toString();
+var start_stop_coord = start_stop_lat.toString() + ',' + start_stop_lng.toString();
+var end_stop_coord = end_stop_lat.toString() + ',' + end_stop_lng.toString();
 
-    var walking_time1 = calculate_walking_time(ori_coord, start_stop_coord);
-    var walking_time2 = calculate_walking_time(end_stop_coord, dest_coord);
+var walking_time1 = calculate_walking_time(ori_coord, start_stop_coord);
+var walking_time2 = calculate_walking_time(end_stop_coord, dest_coord);
 
-    //Calculate actual total time
-    if(time_until_arrival < walking_time1)
-    {
-        console.log("You will miss the bus. This is not an option.")
-        total_time = 0;
-    }
-    else
-    {
-        total_time = time_until_arrival + bus_travel_time + walking_time2;
-        console.log("The total time to reach your destination: " + Math.ceil(total_time) + " minutes");
-    }
+//Calculate actual total time
+var total_time;
+if(time_until_arrival < walking_time1)
+{
+    //console.log("You will miss the bus. This is not an option.")
+    total_time = 0;
+    return "You will miss the bus. This is not an option.";
+}
+else
+{
+    total_time = time_until_arrival + bus_travel_time + walking_time2;
+    //console.log("The total time to reach your destination: " + Math.ceil(total_time) + " minutes");
+    return "The total time to reach your destination: " + Math.ceil(total_time) + " minutes";
 }
 
 //****************************************************************************
@@ -358,8 +549,3 @@ if ((arrival_time_arr.length > 0) && (typeof dest_arrival_time !== 'undefined'))
 //google maps geolocation api key =  AIzaSyBb4z8_yEdG3rEZh0e220tI1oZdNKfHVbA
 
 //****************************************************************************
-
-
-
-
-
