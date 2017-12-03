@@ -6,16 +6,6 @@
          Second half = script
 */
 
-/*
-    Problem to be fixed
-    Situation: I'm standing in front of CFA and I need to go to Questrom
-    Algorithm: Nearest stop to me = CFA (instead of Amory St)
-               Nearest stop to Questrom = 1 Silber way (instead of Blandford St)
-               The algorithm is not able to find a path and returns "Too long..."
-    Solution: I'm still working on this and would welcome any ideas from you guys
-*/
-
-
 //*******************************************************************************
 //*************   Functions   ***************************************************
 //*******************************************************************************
