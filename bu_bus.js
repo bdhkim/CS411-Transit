@@ -358,7 +358,7 @@ function calculate_walking_time(start_coord, end_coord)
 //****************************   Script   *************************************
 //*****************************************************************************
 
-function bu_bus()
+function bu_bus(ori_lat, ori_lng, dest_lat, dest_lng)
 {
     //Read JSON files to get objects
     var url_livebus = 'http://www-devl.bu.edu/nisdev/php5/cs411/bu-mobile-backend/rpc/bus/livebus.json.php';
@@ -376,13 +376,13 @@ function bu_bus()
     //var ori_lat = 42.3501817;
     //var ori_lng = -71.10657938;
     //St.Mary's street
-    var ori_lat = 42.34982489;
-    var ori_lng = -71.1064171;
+    //var ori_lat = 42.34982489;
+    //var ori_lng = -71.1064171;
 
     //Destination coordinates
     //*Should be a user input, but hard-coded (to Blandford St) for now*
-    var dest_lat = 42.34910929;
-    var dest_lng = -71.10044919;
+    //var dest_lat = 42.34910929;
+    //var dest_lng = -71.10044919;
     //var dest_lat = 42.3501817;
     //var dest_lng = -71.10657938;
 
@@ -568,10 +568,20 @@ function bu_bus()
     }
 }
 
-var results = bu_bus();
+
+// Call the bu_bus() function with the coordinates and it should work
+
+
+var results = bu_bus(ori_lat, ori_lng, dest_lat, dest_lng);
 console.log(results);
 
 //****************************************************************************
+
+
+
+
+
+
 
 //****************************************************************************
 //***********   Important Information    *************************************
