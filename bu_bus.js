@@ -356,7 +356,6 @@ function calculate_walking_time(start_coord, end_coord)
     var url = api_1 + start_coord + api_2 + end_coord + api_3;
     var distance_obj = JSON.parse(Get(url));
 
-    //console.log(url);
     walk_time = s_to_min(distance_obj.rows[0].elements[0].duration.value);
     return walk_time;
 }
@@ -376,31 +375,10 @@ function bu_bus(ori_lat, ori_lng, dest_lat, dest_lng)
     var url_stops = 'http://www-devl.bu.edu/nisdev/php5/cs411/bu-mobile-backend/rpc/bus/stops.json.php';
     var stops_obj = JSON.parse(Get(url_stops));
 
-
-    //Current coordinates
-    //*Should be a user input, but hard-coded (to StuVi2) for now*
-    //var ori_lat = 42.353151;
-    //var ori_lng = -71.11815;
-    //Marsh
-    //var ori_lat = 42.3501817;
-    //var ori_lng = -71.10657938;
-    //St.Mary's street
-    //var ori_lat = 42.34982489;
-    //var ori_lng = -71.1064171;
-
-    //Destination coordinates
-    //Blandford St
-    //var dest_lat = 42.34910929;
-    //var dest_lng = -71.10044919;
-    //Marsh
-    //var dest_lat = 42.3501817;
-    //var dest_lng = -71.10657938;
-
     //Find nearest bus stops to origin and destination
     var stops = optimal_nearest_stops(stops_obj, ori_lat, ori_lng, dest_lat, dest_lng);
     var start_stop_id = stops[0];
     var end_stop_id = stops[1];
-    //console.log(start_stop_id, end_stop_id);
 
     //Calculate walking time to start_stop and end_stop
     var start_stop_lat;
@@ -427,23 +405,17 @@ function bu_bus(ori_lat, ori_lng, dest_lat, dest_lng)
     var ori_coord = ori_lat.toString() + ',' + ori_lng.toString();
     var dest_coord = dest_lat.toString() + ',' + dest_lng.toString();
 
-    //console.log(start_stop_lat, start_stop_lng, end_stop_lat, end_stop_lng);
     var start_stop_coord = start_stop_lat.toString() + ',' + start_stop_lng.toString();
     var end_stop_coord = end_stop_lat.toString() + ',' + end_stop_lng.toString();
 
-    //var start_stop_coord = start_stop_lat + ',' + start_stop_lng;
-    //var end_stop_coord = end_stop_lat + ',' + end_stop_lng;
-
     var walking_time1 = calculate_walking_time(ori_coord, start_stop_coord);
     var walking_time2 = calculate_walking_time(end_stop_coord, dest_coord);
-
 
 
     if (start_stop_id == end_stop_id)
     {
         return "Don't be lazy. Just walk across the street.";
     }
-
 
     //At this point, start_stop_id != end_stop_id
     var start_transloc_stop_id;
@@ -584,7 +556,6 @@ function bu_bus(ori_lat, ori_lng, dest_lat, dest_lng)
     //console.log("bus_travel_time: " + bus_travel_time);
     //console.log("walking_time2: " + walking_time2);
     return "The total time to reach your destination: " + Math.ceil(total_time) + " minute(s)";
-    //return "The total time to reach your destination: " + Math.ceil(total_time) + " minutes";
 }
 
 
