@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <base href="/">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Angular (minified) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.2/angular-route.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.2/angular-cookies.js"></script>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+    <!-- Main Angular Files -->
+    <script src="assets/js/angular.js"></script>
+    <script src="assets/js/angular-route.js"></script>
+    <script src="assets/js/angular-animate.js"></script>
+
+    <!-- Angular Config/Routes -->
+    <script src="app/app.js"></script>
+    <script src="app/routes.js"></script>
+
+    <!-- Angular Controllers -->
+    <script src="app/controllers/userCtrl.js"></script>
+    <script src="app/controllers/mainCtrl.js"></script>
+    <script src="app/controllers/emailCtrl.js"></script>
+    <script src="app/controllers/managementCtrl.js"></script>
+
+    <!-- Angular Services -->
+    <script src="app/services/userServices.js"></script>
+    <script src="app/services/authServices.js"></script>
+
+    <!-- Cascade Style Sheets -->
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:400,700">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/style.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/mapstyle.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/animate.css">
+    <link href="assets/css/font-awesome.css" rel="stylesheet">
+
+    <!-- JS File-->
+    <script src="assets/js/jquery-3.1.1.min.js"></script>
+    <script src="assets/js/bootstrap.js"></script>
+    <script src="assets/js/prettymaps.js"></script>
+    <script src="assets/js/index.js"></script>
+
+
+
+    <title>BU Transit Mapper</title>
+
+</head>
+
+<body>
+
+
+
+<!-- /////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+    <div ng-app="userApp" ng-controller="mainCtrl as main" ng-show="main.loadme" ng-cloak>
+    <!-- Navigation -->
+      <nav class="navbar navbar-default navbar-fixed-top navbar-shrink">
+          <div class="container">
+              <!-- Brand and toggle get grouped for better mobile display -->
+              <div class="navbar-header page-scroll">
+                  <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                      <span class="sr-only">Toggle navigation</span>
+                      <span class="icon-bar"></span>
+                      <span class="icon-bar"></span>
+                      <span class="icon-bar"></span>
+                  </button>
+                  <a class="navbar-brand page-scroll" href="/">BU Transit Mapper</a>
+              </div>
+
+              <!-- Collect the nav links, forms, and other content for toggling -->
+              <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                  <ul class="nav navbar-nav navbar-right">
+                      <li class="hidden active">
+                          <a href="#page-top"></a>
+                      </li>
+                      <li class="">
+                          <a class="page-scroll" href="/about.html">Home</a>
+                      </li>
+                      <li class="">
+                          <a ng-show="!main.isLoggedIn" class="page-scroll" href="/login">Login</a>
+                      </li>
+                      <li class="">
+                          <a ng-show="!main.isLoggedIn" class="page-scroll" href="/register">Register</a>
+                      </li>
+                      <li class="">
+                          <a ng-show="main.isLoggedIn" class="page-scroll" href="#" ng-click="main.logout();">Logout</a>
+                      </li>
+                      <li class="">
+                          <a ng-show="main.isLoggedIn && main.authorized" class="page-scroll" href="/management">Management</a>
+                      </li>
+                      <li class="">
+                          <a ng-show="main.isLoggedIn" class="page-scroll" href="/profile">Hello, {{ main.username }}</a>
+                      </li>
+                  </ul>
+              </div>
+
+              <!-- /.navbar-collapse -->
+          </div>
+          <!-- /.container-fluid -->
+      </nav>
+      
+      <!-- <button onclick="getLocation()">Detect Current Location</button> -->
+                        <p id="demo"></p>
+                        <div id="map-canvas"></div>
+                        <script src='https://maps.googleapis.com/maps/api/js?v=3.exp'></script>
+	<br><br>
+    <div id="main">
+        <div class="main">
+            <h1>Search Away!</h1>
+            <div class="agile_main_grids">
+
+                <div class="w3_agile_maps">
+                    <div class="w3_agile_map">
+
+                        <!-- <button onclick="getLocation()">Detect Current Location</button> -->
+                        <p id="demo"></p>
+                        <div class="map-canvas"></div>
+                        <script src='https://maps.googleapis.com/maps/api/js?v=3.exp'></script>
+
+                        
+
+
+                        <button id="default-map-btn" class="w3ls_button">Default</button>
+                        <button id="green-map-btn" class="w3ls_button">Green Line</button>
+                        <button id="grey-map-btn" class="w3ls_button">57 BUS</button>
+                        <button id="blue-map-btn" class="w3ls_button">BU Bus</button>
+                        <button id="green-map-btn" class="w3ls_button">Uber</button>
+                        <button id="dafault-map-btn" class="w3ls_button">Lyft</button>
+                        <button id="grey-map-btn" class="w3ls_button">Walk</button>
+                    </div>
+                </div>
+			<div class="clear"></div>
+            </div>
+
+        </div>
+	
+	
+
+
+    </div>
+    
+			    <app-root></app-root>
+
+				<script type="text/javascript" src="inline.bundle.js"></script>
+				<script type="text/javascript" src="polyfills.bundle.js"></script>
+				<script type="text/javascript" src="styles.bundle.js"></script>
+				<script type="text/javascript" src="vendor.bundle.js"></script>
+				<script type="text/javascript" src="main.bundle.js"></script>
+
+
+	<!-- map -->
+
+    <script>
+        $(function(){
+            //default
+            $('.map-canvas').prettyMaps({
+                address: 'Boston University',
+                image: '/modules/core/client/img/map-icon.png',
+                hue: '#ffc600',
+                zoom: 15,
+                saturation: -20
+            });
+
+            //red map example
+            $('#default-map-btn').on('click', function(){
+                $('.map-canvas').prettyMaps();
+            });
+
+            //green map example
+            $('#green-map-btn').on('click', function(){
+                $('.map-canvas').prettyMaps({
+                    address: 'Boston University',
+                    image: '/modules/core/client/img/map-icon.png',
+                    hue: '#00FF55',
+                    zoom: 15,
+                    saturation: -30
+
+                });
+            });
+
+            //blue map example
+            $('#blue-map-btn').on('click', function(){
+                $('.map-canvas').prettyMaps({
+                    address: 'Boston University',
+                    image: '/modules/core/client/img/map-icon.png',
+                    hue: '#0073FF',
+                    saturation: -30,
+                    zoom: 15,
+                    panControl: true,
+                    zoomControl: true,
+                    mapTypeControl: true,
+                    scaleControl: true,
+                    streetViewControl: true,
+                    overviewMapControl: true,
+                    scrollwheel: false,
+                });
+            });
+
+            //grey map example
+            $('#grey-map-btn').on('click', function(){
+                $('.map-canvas').prettyMaps({
+                    address: 'Boston University',
+                    image: '/modules/core/client/img/map-icon.png',
+                    saturation: -100,
+                    zoom: 15,
+                    lightness: 10
+                });
+            });
+        });
+
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+    <section id="services">
+        <div class="container">
+            <div class="row">
+
+                <!-- Angular View -->
+                <div ng-view></div>
+                <!-- Angular View -->
+
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Modified Header -->
+    <header ng-show="main.home">
+        <div class="container">
+            <div class="intro-text">
+
+                <a ng-show="!main.isLoggedIn" href="/login" class="page-scroll btn btn-xl">Sign In</a>
+                <a ng-show="!main.isLoggedIn" href="/register" class="page-scroll btn twitterbtn">Register</a>
+                <a ng-show="main.isLoggedIn" href="#" ng-click="main.logout();" class="page-scroll btn btn-xl">Logout</a>
+                <a ng-show="main.isLoggedIn && main.authorized" href="/management" class="page-scroll btn facebookbtn">View</a>
+
+            </div>
+        </div>
+    </header>
+
+    <footer ng-show="main.home">
+		<div class="agileits_copyright">
+			<p>© CS411 Project | Ozdemir E | Brian K | Kavi S | Tommy S | Yuchen Z | <a href="https://github.com/bdhkim/CS411-Transit">Github</a></p>
+		</div>
+    </footer>
+
+    <!-- BootstrapJS Modal -->
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button ng-hide="main.hideButton" type="button" ng-click="main.endSession();" class="close" data-dismiss="modal">&times;</button>
+                    <!-- Modal Header -->
+                    <h4 class="modal-title">{{ main.modalHeader }}</h4>
+                </div>
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <p>{{ main.modalBody }}</p>
+                    <div ng-show="main.hideButton" class="dizzy-gillespie"></div>
+                </div>
+                <div class="modal-footer">
+                    <!-- Modal 'Yes' & 'No' Buttons -->
+                    <button type="button" ng-hide="main.hideButton" ng-click="main.renewSession();" class="btn btn-primary" data-dismiss="modal">Yes</button>
+                    <button type="button" ng-hide="main.hideButton" ng-click="main.endSession();" class="btn btn-danger" data-dismiss="modal">No</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- BootstrapJS Modal -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+
+</div>
+
+
+
+
+<!-- /////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+
+</body>
+
+</html>
