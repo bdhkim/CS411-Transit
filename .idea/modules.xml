@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/CS411-Transit.iml" filepath="$PROJECT_DIR$/.idea/CS411-Transit.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/TransitMapper.iml" filepath="$PROJECT_DIR$/.idea/TransitMapper.iml" />
     </modules>
   </component>
 </project>
