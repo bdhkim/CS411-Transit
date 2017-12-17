@@ -6,6 +6,8 @@ var session = require('express-session'); // Import Express Session Package
 var jwt = require('jsonwebtoken'); // Import JWT Package
 var secret = 'harrypotter'; // Create custom secret to use with JWT
 
+var APIsecret = require('../routes/secret');
+
 module.exports = function(app, passport) {
     // Start Passport Configuration Settings
     app.use(passport.initialize());
@@ -39,7 +41,7 @@ module.exports = function(app, passport) {
     // Facebook Strategy    
     passport.use(new FacebookStrategy({
             clientID: '147926895930200', 
-            clientSecret: '5726e39e6320b9eeb3d81a01c008c76d', 
+            clientSecret: APIsecret.facebookSecret, 
             callbackURL: "http://localhost:3000/auth/facebook/callback",
             profileFields: ['id', 'displayName', 'photos', 'email']
         },
@@ -60,7 +62,7 @@ module.exports = function(app, passport) {
     // Twitter Strategy
     passport.use(new TwitterStrategy({
             consumerKey: 'uyqUNlmmpkCwCAiQ2Zgq3IZcp', 
-            consumerSecret: 'YbAnW4zdGh5vYdpYXoTEiZIevaRiwbpHSS14fcVqI731fBisRJ',
+            consumerSecret: APIsecret.twitterSecret,
             callbackURL: "http://localhost:3000/auth/twitter/callback", 
             userProfileURL: "https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true"
         },
@@ -90,7 +92,7 @@ module.exports = function(app, passport) {
     // Google Strategy  
     passport.use(new GoogleStrategy({
             clientID: '852222686887-ld3cnfu1g76lpi0bgrmpbr37css6c3o0.apps.googleusercontent.com', 
-            clientSecret: 'j-k8frTBw-6u-De6vPqk3uSI', 
+            clientSecret: APIsecret.googleSecret, 
             callbackURL: "http://localhost:3000/auth/twitter/callback" 
         },
         function(accessToken, refreshToken, profile, done) {

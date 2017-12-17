@@ -289,25 +289,33 @@ function optimal_nearest_stops(stops_obj, ori_lat, ori_lng, dest_lat, dest_lng)
     Note: Not considering cases when the earliest bus arrives the next day
           Print "Too long..." when this is the case (done in script)
  */
-function earliest_arrival_time(arrival_time_arr, bus_id_arr)
+function earliest_arrival_time(arrival_time_arr, bus_id_arr, walking_time_to_stop)
 {
     var num_times = arrival_time_arr.length;
 
     var lowest = Date.parse(arrival_time_arr[0]);
     var bus_id = 0;
+    var second_lowest;
+    var bus_id;
     var time_idx;
     for(time_idx = 1; time_idx < num_times; time_idx++)
     {
         var arrival_time = Date.parse(arrival_time_arr[time_idx]);
 
-        if(arrival_time < lowest)
+        if((arrival_time < lowest) && (arrival_time > walking_time_to_stop))
         {
             lowest = arrival_time;
             bus_id = bus_id_arr[time_idx];
         }
     }
 
-    return [lowest, bus_id];
+    var no_good_bus_flag = false;
+    if (lowest < walking_time_to_stop)
+    {
+        no_good_bus_flag = true;
+    }
+
+    return [lowest, bus_id, no_good_bus_flag];
 }
 
 
@@ -368,67 +376,80 @@ function bu_bus(ori_lat, ori_lng, dest_lat, dest_lng)
     var url_stops = 'http://www-devl.bu.edu/nisdev/php5/cs411/bu-mobile-backend/rpc/bus/stops.json.php';
     var stops_obj = JSON.parse(Get(url_stops));
 
-    var ori_lat = ori_lat;
-    var ori_lng = ori_lng;
-    var dest_lat = dest_lat;
-    var dest_lng = dest_lng;
-    //Current coordinates
-    //*Should be a user input, but hard-coded (to StuVi2) for now*
-    //var ori_lat = 42.353151;
-    //var ori_lng = -71.11815;
-    //Marsh
-    //var ori_lat = 42.3501817;
-    //var ori_lng = -71.10657938;
-    //St.Mary's street
-    //var ori_lat = 42.34982489;
-    //var ori_lng = -71.1064171;
-
-    //Destination coordinates
-    //*Should be a user input, but hard-coded (to Blandford St) for now*
-    //var dest_lat = 42.34910929;
-    //var dest_lng = -71.10044919;
-    //var dest_lat = 42.3501817;
-    //var dest_lng = -71.10657938;
-
     //Find nearest bus stops to origin and destination
     var stops = optimal_nearest_stops(stops_obj, ori_lat, ori_lng, dest_lat, dest_lng);
     var start_stop_id = stops[0];
     var end_stop_id = stops[1];
 
+    //Calculate walking time to start_stop and end_stop
+    var start_stop_lat;
+    var start_stop_lng;
+    var end_stop_lat;
+    var end_stop_lng;
+
+    var num_stops = stops_obj.totalResultsAvailable;
+    var stop_idx;
+    for (stop_idx = 0; stop_idx < num_stops; stop_idx++)
+    {
+        if (stops_obj.ResultSet.Result[stop_idx].stop_id == start_stop_id)
+        {
+            start_stop_lat = stops_obj.ResultSet.Result[stop_idx].stop_lat;
+            start_stop_lng = stops_obj.ResultSet.Result[stop_idx].stop_lon;
+        }
+        if (stops_obj.ResultSet.Result[stop_idx].stop_id == end_stop_id)
+        {
+            end_stop_lat = stops_obj.ResultSet.Result[stop_idx].stop_lat;
+            end_stop_lng = stops_obj.ResultSet.Result[stop_idx].stop_lon;
+        }
+    }
+
+    var ori_coord = ori_lat.toString() + ',' + ori_lng.toString();
+    var dest_coord = dest_lat.toString() + ',' + dest_lng.toString();
+
+    var start_stop_coord = start_stop_lat.toString() + ',' + start_stop_lng.toString();
+    var end_stop_coord = end_stop_lat.toString() + ',' + end_stop_lng.toString();
+
+    var walking_time1 = calculate_walking_time(ori_coord, start_stop_coord);
+    var walking_time2 = calculate_walking_time(end_stop_coord, dest_coord);
+
 
     if (start_stop_id == end_stop_id)
     {
-        return "Don't be lazy. Just walk.";
+        return "Don't be lazy. Just walk across the street.";
     }
-
 
     //At this point, start_stop_id != end_stop_id
     var start_transloc_stop_id;
     var end_transloc_stop_id;
 
-    var num_stops = stops_obj.totalResultsAvailable;
-    var stop_idx;
-
+    //var num_stops = stops_obj.totalResultsAvailable; (Declared above)
+    //var stop_idx; (Declared above)
     for (stop_idx = 0; stop_idx < num_stops; stop_idx ++)
     {
         if (stops_obj.ResultSet.Result[stop_idx].stop_id == start_stop_id)
         {
-            start_transloc_stop_id = stops_obj.ResultSet.Result[stop_idx].transloc_stop_id;
+            if (start_stop_id == "C8")
+            {
+                start_transloc_stop_id = "4160714";
+            }
+            else
+            {
+                start_transloc_stop_id = stops_obj.ResultSet.Result[stop_idx].transloc_stop_id;
+            }
         }
         if (stops_obj.ResultSet.Result[stop_idx].stop_id == end_stop_id)
         {
-            end_transloc_stop_id = stops_obj.ResultSet.Result[stop_idx].transloc_stop_id;
+            if (end_stop_id == "C8")
+            {
+                end_transloc_stop_id = "4160714";
+            }
+            else
+            {
+                end_transloc_stop_id = stops_obj.ResultSet.Result[stop_idx].transloc_stop_id;
+            }
         }
     }
 
-    if (start_stop_id == "C8")
-    {
-        start_transloc_stop_id = "4160714";
-    }
-    if (end_stop_id == "C8")
-    {
-        end_transloc_stop_id = "4160714";
-    }
 
 
     //Determine arrival of next bus to start_stop
@@ -436,7 +457,7 @@ function bu_bus(ori_lat, ori_lng, dest_lat, dest_lng)
     var num_livebus = livebus_obj.totalResultsAvailable;
     if (num_livebus == 0)
     {
-        return "No buses are running";
+        return "Tell BU to invest in more buses because there are none running now";
     }
 
     //Record estimated arrival time of buses at start_stop
@@ -468,23 +489,29 @@ function bu_bus(ori_lat, ori_lng, dest_lat, dest_lng)
     //Determine earliest bus to arrive (time until arrival + bus ID)
     var time_until_arrival;
     var bus_id;
+    var no_good_buses_running;
     if (arrival_time_arr.length > 0)
     {
-        var arrival_obj_arr = earliest_arrival_time(arrival_time_arr, bus_id_arr);
+        var arrival_obj_arr = earliest_arrival_time(arrival_time_arr, bus_id_arr, walking_time1);
         var arrival_timestamp = arrival_obj_arr[0];
         time_until_arrival = ms_to_min(arrival_timestamp - Date.now());
         bus_id = arrival_obj_arr[1];
+        no_good_buses_running = arrival_obj_arr[2];
     }
     else
     {
         //console.log("No buses");
         //console.log("Too long. Not an option");
-        return "Too long. Not an option";
+        return "No results from the (badly maintained) BU Bus API";
     }
 
+    if (no_good_buses_running)
+    {
+        return "You will miss the next bus to arrive at your closest stop. The bus after that will be too long of a wait, so just WALK!"
+    }
 
     //Calculate the length (time) of the bus journey
-    var dest_arrival_time;
+    var dest_arrival_time = 0;
     for (bus_idx = 0; bus_idx < num_livebus; bus_idx++)
     {
         if (livebus_obj.totalResultsAvailable >= num_livebus)
@@ -511,69 +538,68 @@ function bu_bus(ori_lat, ori_lng, dest_lat, dest_lng)
     }
 
     var bus_travel_time;
-    if (typeof dest_arrival_time !== 'undefined')
+    if (dest_arrival_time == 0)
+    {
+        //console.log("Unable to detect destination stop");
+        var waiting_time = time_until_arrival - walking_time1;
+        return "You will get on a bus in " + Math.ceil(waiting_time) + " minute(s) if you walk to your nearest stop, but there are no travel time estimates from the (badly maintained) BU Bus API";
+    }
+    else
     {
         bus_travel_time = ms_to_min(dest_arrival_time - Date.now());
     }
-    else
-    {
-        console.log("Unable to detect destination stop");
-        //console.log("Too long. Not an option");
-        return "Too long. Not an option";
-    }
 
-
-    //Calculate walking time
-    var start_stop_lat;
-    var start_stop_lng;
-    var end_stop_lat;
-    var end_stop_lng;
-
-    for (stop_idx = 0; stop_idx < num_stops; stop_idx++)
-    {
-        if (stops_obj.ResultSet.Result[stop_idx].stop_id == start_stop_id)
-        {
-            start_stop_lat = stops_obj.ResultSet.Result[stop_idx].stop_lat;
-            start_stop_lng = stops_obj.ResultSet.Result[stop_idx].stop_lon;
-        }
-        if (stops_obj.ResultSet.Result[stop_idx].stop_id == end_stop_id)
-        {
-            end_stop_lat = stops_obj.ResultSet.Result[stop_idx].stop_lat;
-            end_stop_lng = stops_obj.ResultSet.Result[stop_idx].stop_lon;
-        }
-    }
-
-
-    var ori_coord = ori_lat.toString() + ',' + ori_lng.toString();
-    var dest_coord = dest_lat.toString() + ',' + dest_lng.toString();
-
-    var start_stop_coord = start_stop_lat.toString() + ',' + start_stop_lng.toString();
-    var end_stop_coord = end_stop_lat.toString() + ',' + end_stop_lng.toString();
-
-    var walking_time1 = calculate_walking_time(ori_coord, start_stop_coord);
-    var walking_time2 = calculate_walking_time(end_stop_coord, dest_coord);
 
     //Calculate actual total time
     var total_time;
-    if (time_until_arrival < walking_time1)
-    {
-        //console.log("You will miss the bus. This is not an option.")
-        total_time = 0;
-        return "You will miss the bus. This is not an option.";
-    }
-    else
-    {
-        total_time = time_until_arrival + bus_travel_time + walking_time2;
-        //console.log("time_until_arrival: " + time_until_arrival);
-        //console.log("bus_travel_time: " + bus_travel_time);
-        //console.log("walking_time2: " + walking_time2);
-        console.log("The total time to reach your destination: " + Math.ceil(total_time) + " minute(s)");
-        //return "The total time to reach your destination: " + Math.ceil(total_time) + " minutes";
-    }
+    total_time = time_until_arrival + bus_travel_time + walking_time2;
+    //console.log("time_until_arrival: " + time_until_arrival);
+    //console.log("bus_travel_time: " + bus_travel_time);
+    //console.log("walking_time2: " + walking_time2);
+    return "The total time to reach your destination: " + Math.ceil(total_time) + " minute(s)";
 }
 
 
 // Call the bu_bus() function with the coordinates and it should work
+
+//Marsh
+//var ori_lat = 42.3501817;
+//var ori_lng = -71.10657938;
+//var ori_lat = 42.350559550836664;
+//var ori_lng = -71.10644459474429;
+
+//90 Gardner
+//var ori_lat = 42.35347339298392;
+//var ori_lng = -71.12511813390597;
+
+
+//Blandford St
+//var dest_lat = 42.34910929;
+//var dest_lng = -71.10044919;
+//var dest_lat = 42.348938048203486;
+//var dest_lng = -71.09975516546115;
+
+
+//var results = bu_bus(ori_lat, ori_lng, dest_lat, dest_lng);
+//console.log(results);
+
+//****************************************************************************
+
+
+
+
+
+
+
+//****************************************************************************
+//***********   Important Information    *************************************
+//****************************************************************************
+
+//google maps geocode api key = AIzaSyBAGXXushBzgfMSuAMkR9GqwEdbE3OGyL8
+//google maps distance matrix api key =  AIzaSyCs83Y5ODrwAOEko3-tJbZlNssYw56yd4A
+//google maps geolocation api key =  AIzaSyBb4z8_yEdG3rEZh0e220tI1oZdNKfHVbA
+
+//****************************************************************************
 
 
 

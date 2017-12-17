@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-
+var secret = require('./secret');
 const Uber = require('node-uber');
 
 var lat;
@@ -52,7 +52,7 @@ router.get('/location', function(req, response) {
     console.log(value);
     var uber = new Uber({
         client_id: 'yRKJa2YFibHhBdeKaJKUj-IuoiLkx7o0',
-        client_secret: 'w4xy3XQJCwyWE_2t-KQfgwIYnp-s_Mqn6MqvjBcr',
+        client_secret: secret.uberSecret,
         server_token: 'N_i5TecLXpEsoNyzp6DKG5X2oS8kTt2xBanrn9EW',
         redirect_uri: 'REDIRECT URL',
         name: 'CS411 Project'
