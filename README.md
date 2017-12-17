@@ -1,9 +1,29 @@
 # BCS411 BU Mapper Project
-this is the code that we looked during our faculty lecture on dogfooding. Note that to run this project, node_modules must be installed via `npm install` in TWO different places. One in the default direcotry where there is package.json AND within the app folder that contains another package.json file.
+
+	This is a CS411 Project that has ambitiously combined 6 different API calls to give you an instant estimate to your destination:
+
+	The 6 different choices of transportation are
+
+	MBTA - T,
+
+	MBTA - 57 BUS,
+
+	Uber,
+
+	Lyft,
+
+	Walking,
+
+	BU Shuttle.
+
+	Enjoy! 
+
+	  To run this project, node_modules must be installed via `npm install` in TWO different places. One in the default direcotry where there is package.json AND within the app folder that contains another package.json file.
+
+
+## Running the App
+ To run this project, node_modules must be installed via `npm install` in TWO different places. One in the default direcotry where there is package.json AND within the app folder that contains another package.json file. Also, mongodb must be running in background to store user information. 
 
 ## Passport
-This branch is set up for authentication using Passport.js
-
-## Running
-To run, first clone the repo and install the Node componenets. Start mongoDB with `mongod`, then run the app with `npm start`.
+NPM's Passport module is handling authentication with Facebook, Twitter, and Google. 
 
