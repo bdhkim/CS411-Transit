@@ -1,4 +1,4 @@
-# BCS411 BU Mapper Project
+# CS411 BU Mapper Project
 
 This is a CS411 Project that has ambitiously combined 6 different API calls to give you an instant estimate to your destination within BU.
 
